@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PokéPack Lab — Pokémon Card Simulator</title>
+<style>
+:root{--bg:#0b1020;--panel:#131b30;--panel2:#19243d;--line:#2c3a59;--text:#f3f6ff;--muted:#9aa9c8;--gold:#ffd166;--cyan:#64e6ff;--pink:#ff6fbd;--green:#76f7b2}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#253d72 0,transparent 38%),radial-gradient(ellipse at 0% 35%,#211943 0,transparent 30%),var(--bg);color:var(--text);font:15px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,select{font:inherit}button{cursor:pointer;border:0;border-radius:12px;padding:11px 15px;font-weight:800;transition:.18s}button:hover{transform:translateY(-1px);filter:brightness(1.08)}button:disabled{opacity:.5;cursor:wait;transform:none}
+.app{max-width:1440px;margin:auto;padding:22px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#ffcb54,#ff7a59 55%,#9b6bff);display:grid;place-items:center;font-size:25px;box-shadow:0 7px 28px #ff8e4930}.brand h1{font-size:22px;margin:0;letter-spacing:-.7px}.brand p{margin:2px 0 0;color:var(--muted);font-size:12px}.status{color:var(--muted);font-size:12px;text-align:right}.status strong{color:var(--green)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}.stat{padding:16px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,#18233a,#10172a)}.stat .label{font-size:12px;color:var(--muted)}.stat .value{font-size:25px;font-weight:900;letter-spacing:-.7px;margin-top:5px}.stat .sub{font-size:11px;color:var(--muted);margin-top:3px}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.nav button{background:#18223a;color:#aebbd6;border:1px solid var(--line)}.nav button.active{background:linear-gradient(100deg,#ffd166,#ffb347);color:#231a08;border-color:transparent}
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,.8fr);gap:18px;align-items:start}.panel{background:linear-gradient(155deg,#151f35ee,#10172aee);border:1px solid var(--line);border-radius:20px;padding:20px;min-width:0}.panel h2{margin:0;font-size:20px;letter-spacing:-.4px}.muted{color:var(--muted)}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}.pill{border:1px solid #354767;border-radius:999px;padding:5px 9px;color:#b8c8e8;font-size:11px;white-space:nowrap}
+.pack-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px}.pack{border:1px solid #34435f;background:linear-gradient(145deg,#202f4e,#111a2e);border-radius:16px;padding:14px;position:relative;overflow:hidden}.pack:before{content:"";position:absolute;width:120px;height:120px;right:-55px;top:-45px;border-radius:50%;background:var(--glow,#7c73ff);filter:blur(35px);opacity:.2}.pack-art{height:120px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(145deg,#2c4e82,#1d2450);margin-bottom:12px;position:relative;overflow:hidden}.pack-art img{width:100%;height:100%;object-fit:cover;opacity:.82}.pack-art .orb{font-size:55px;filter:drop-shadow(0 6px 8px #0008)}.pack h3{font-size:14px;margin:0 0 5px;min-height:38px}.pack .small{font-size:11px;color:var(--muted);min-height:32px}.pack .pack-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px}.open-btn{background:linear-gradient(100deg,#ffe08a,#ffb347);color:#241b08;padding:9px 12px}.set-select{width:100%;background:#0c1425;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;margin:0 0 12px}.search{width:100%;background:#0c1425;border:1px solid var(--line);border-radius:11px;padding:11px;color:var(--text);outline:none}.search:focus{border-color:var(--cyan)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:13px}.tcg-card{min-width:0;position:relative}.tcg-card.reveal-card{opacity:0;transform:translateY(18px) scale(.94);animation:cardReveal .55s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--reveal-delay,0ms)}.tcg-card.reveal-card img{animation:cardGlow .7s ease-out both;animation-delay:calc(var(--reveal-delay,0ms) + 120ms)}.tcg-card.final-reveal{border-radius:13px;padding:5px;background:linear-gradient(135deg,#ffd166,#ff6fbd,#64e6ff);box-shadow:0 0 0 1px #ffd16655,0 0 28px #ffd16635;animation:cardReveal .7s cubic-bezier(.2,.8,.2,1) forwards,finalPulse 1.8s ease-in-out infinite;animation-delay:var(--reveal-delay,0ms),calc(var(--reveal-delay,0ms) + .7s)}@keyframes cardReveal{to{opacity:1;transform:translateY(0) scale(1)}}@keyframes cardGlow{0%{filter:brightness(.65) saturate(.7)}60%{filter:brightness(1.25) saturate(1.15)}100%{filter:brightness(1)}}@keyframes finalPulse{0%,100%{box-shadow:0 0 0 1px #ffd16655,0 0 18px #ffd16625}50%{box-shadow:0 0 0 2px #ffd166bb,0 0 32px #ffd16670}}.tcg-card img{width:100%;display:block;border-radius:10px;box-shadow:0 9px 20px #0005;transition:.2s}.tcg-card:hover img{transform:translateY(-3px) rotate(.4deg)}.card-name{font-size:12px;font-weight:800;margin:7px 0 2px}.card-meta{font-size:10px;color:var(--muted)}.price{color:var(--gold);font-size:13px;font-weight:900;margin-top:5px}.price.unknown{color:#9ba8c2;font-weight:600}.mini-btn{background:#263653;color:#e8efff;padding:6px 8px;font-size:10px;margin-top:7px;border:1px solid #3b4e70}
+.best-panel{position:sticky;top:12px}.best-placeholder{min-height:300px;border:1px dashed #3b4b6d;border-radius:16px;display:grid;place-items:center;text-align:center;padding:25px;color:var(--muted);background:radial-gradient(ellipse at center,#1c2b48,transparent 70%)}.best-placeholder .big{font-size:50px;margin-bottom:8px}.best-card{display:grid;grid-template-columns:minmax(130px,.9fr) minmax(120px,1fr);gap:14px;align-items:start}.best-card img{width:100%;border-radius:12px;box-shadow:0 10px 30px #0007}.best-card h3{margin:0 0 6px;font-size:17px}.best-price{font-size:26px;font-weight:950;color:var(--gold);margin:8px 0}.tiny{font-size:11px;color:var(--muted)}.divider{height:1px;background:var(--line);margin:16px 0}
+.hidden{display:none!important}.summary{margin-top:18px;padding:17px;border-radius:15px;background:linear-gradient(110deg,#263753,#1a2540);border:1px solid #405779}.summary .total{font-size:29px;font-weight:950;color:var(--gold)}.summary-row{display:flex;justify-content:space-between;gap:10px;margin:5px 0;font-size:13px}.notice{padding:12px 14px;border-radius:12px;background:#25243a;border:1px solid #51466e;color:#d8d3ff;font-size:12px;margin-bottom:15px}.empty{padding:35px;text-align:center;border:1px dashed var(--line);border-radius:14px;color:var(--muted)}.loadline{height:4px;background:#263550;border-radius:9px;overflow:hidden;margin:12px 0}.loadline div{height:100%;width:35%;background:linear-gradient(90deg,var(--cyan),#b68aff);animation:load 1.2s infinite alternate}@keyframes load{to{width:95%}}.tag{display:inline-block;background:#293755;color:#d5e4ff;border-radius:6px;padding:3px 6px;font-size:10px;margin-top:6px}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:12px 18px;border-radius:12px;background:#f8d66d;color:#211908;font-weight:800;box-shadow:0 8px 30px #0007;z-index:10;display:none}.footer{font-size:11px;color:#8494b5;margin:20px 3px 5px;line-height:1.6}.link{color:var(--cyan)}.row-actions{display:flex;gap:8px;flex-wrap:wrap}.secondary{background:#263653;color:#dce7ff;border:1px solid #3a4b6c}.danger{background:#512c3b;color:#ffdce7;border:1px solid #75445a}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.best-panel{position:static}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.best-card{grid-template-columns:minmax(130px,.7fr) 1fr}}
+@media(max-width:520px){.app{padding:12px}.topbar{align-items:flex-start}.brand h1{font-size:18px}.status{max-width:125px}.stats{gap:8px}.stat{padding:12px}.stat .value{font-size:20px}.panel{padding:14px}.pack-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.pack{padding:10px}.pack-art{height:95px}.card-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.best-card{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+  <div class="brand"><div class="logo">⚡</div><div><h1>PokéPack <span style="color:var(--gold)">LAB</span></h1><p>Pokémon TCG opening simulator · English cards</p></div></div>
+  <div class="status" id="apiStatus">Łączenie z katalogiem kart…</div>
+</header>
+<section class="stats">
+  <div class="stat"><div class="label">WARTOŚĆ KOLEKCJI</div><div class="value" id="totalValue">€0.00</div><div class="sub">Suma wartości posiadanych kart</div></div>
+  <div class="stat"><div class="label">OTWARTE PACZKI</div><div class="value" id="packsOpened">0</div><div class="sub">Każde otwarcie zapisuje karty</div></div>
+  <div class="stat"><div class="label">KARTY W ALBUMIE</div><div class="value" id="cardCount">0</div><div class="sub">Liczba zdobytych kart</div></div>
+  <div class="stat"><div class="label">NAJDROŻSZA KARTA</div><div class="value" id="bestValue">€0.00</div><div class="sub" id="bestName">Jeszcze nic nie zdobyto</div></div>
+</section>
+<nav class="nav">
+ <button class="active" data-tab="packs">📦 Paczki</button><button data-tab="album">🗂 Album</button><button data-tab="history">📜 Historia</button>
+</nav>
+<div id="packsView">
+ <div class="layout">
+  <main class="panel">
+   <div class="section-head"><div><h2>Wybierz paczkę</h2><div class="muted" style="font-size:12px;margin-top:4px">Każdy zestaw Pokémon TCG to osobna pula kart.</div></div><span class="pill" id="setCount">Ładowanie setów…</span></div>
+   <div class="notice">🎴 Symulator losuje 10 kart z wybranego setu. To tryb kolekcjonerski, nie dokładna symulacja oryginalnego składu boosterów.</div>
+   <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-bottom:12px">
+    <select class="set-select" id="setPicker" aria-label="Wybierz paczkę z listy" style="margin:0">
+      <option value="">Wybierz paczkę z listy…</option>
+    </select>
+    <button class="open-btn" id="openPicked" disabled>Otwórz wybraną</button>
+   </div>
+   <div class="muted" style="font-size:11px;margin:-4px 0 12px">Wybierz zestaw z rozwijanej listy albo kliknij „Otwórz” przy jego okładce poniżej.</div>
+   <div id="loadingSets"><div class="loadline"><div></div></div><div class="muted">Pobieram prawdziwe zestawy i karty…</div></div>
+   <div id="packGrid" class="pack-grid"></div>
+   <div id="loadMoreWrap" class="row-actions" style="justify-content:center;margin-top:16px"><button id="loadMore" class="secondary hidden">Pokaż więcej zestawów</button></div>
+  </main>
+  <aside class="panel best-panel">
+   <div class="section-head"><div><h2>🏆 Najlepszy drop</h2><div class="muted" style="font-size:12px">Najdroższa karta z ostatniej paczki</div></div><span class="pill">LIVE DROP</span></div>
+   <div id="bestDrop" class="best-placeholder"><div><div class="big">✨</div><b>Otwórz pierwszą paczkę</b><div style="font-size:12px;margin-top:6px">Tutaj pokaże się najdroższa karta z otwarcia.</div></div></div>
+   <div id="packResults" class="hidden">
+    <div class="divider"></div><div class="section-head"><h2>Wynik paczki</h2><span class="pill" id="resultCount">10 kart</span></div>
+    <div id="resultCards" class="card-grid"></div>
+    <div class="summary" id="packSummary"></div>
+   </div>
+  </aside>
+ </div>
+</div>
+<div id="albumView" class="hidden">
+ <section class="panel"><div class="section-head"><div><h2>🗂 Album kart</h2><div class="muted" style="font-size:12px">Najlepsze karty na górze · ceny orientacyjne w EUR</div></div><button id="clearCollection" class="danger">Wyczyść album</button></div>
+ <input class="search" id="albumSearch" placeholder="Szukaj karty po angielskiej nazwie…" style="margin-bottom:15px">
+ <div id="albumGrid" class="card-grid"></div><div id="albumEmpty" class="empty">Album jest pusty. Otwórz paczkę, aby zdobyć pierwsze karty!</div></section>
+</div>
+<div id="historyView" class="hidden">
+ <section class="panel"><div class="section-head"><div><h2>📜 Historia otwarć</h2><div class="muted" style="font-size:12px">Każda paczka i jej łączna wartość</div></div><button class="secondary" id="clearHistory">Wyczyść historię</button></div><div id="historyList"></div></section>
+</div>
+<div class="footer">Dane kart i ilustracje: Pokémon TCG API / PokémonTCG.io. Używane są ceny Cardmarket (EUR), jeśli są dostępne; w pozostałych przypadkach wyświetlana jest cena symulowana — zwykle niższa dla zwykłych kart i wyższa dla rzadkich oraz holograficznych. Ceny symulowane są orientacyjne i nie stanowią oferty sprzedaży. Pokémon i Pokémon TCG są znakami towarowymi ich właścicieli. To fanowski symulator.</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const API='https://api.pokemontcg.io/v2';
+const $=id=>document.getElementById(id);
+let sets=[], shownSets=24, selectedSet=null, cache={}, collection=[], history=[], opening=false;
+const fmt=n=>'€'+Number(n??0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const escapeHTML=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function simulatedPriceFor(c){let r=String(c.rarity||'').toLowerCase(), holo=/holo|foil|shiny/.test(r), ultra=/secret|hyper|rainbow|illustration|special illustration|ultra rare|gold|amazing rare|radiant|alternate|alt art/.test(r), rare=/rare|double rare|ace spec/.test(r);let min=0.04,max=0.25;if(ultra){min=4;max=28}else if(holo){min=1.2;max=7}else if(rare){min=0.35;max=1.8}else if(/uncommon/.test(r)){min=0.12;max=0.55}let seed=String(c.id||c.name||'pokemon').split('').reduce((a,ch)=>(a*31+ch.charCodeAt(0))>>>0,17);let n=min+(seed%10000)/10000*(max-min);return Math.round(n*100)/100}
+function priceOf(c){if(typeof c.simulatedPrice==='number')return c.simulatedPrice;let p=c.cardmarket?.prices;let v=p&&(p.trendPrice??p.averageSellPrice??p.avg30??p.lowPrice);return typeof v==='number'&&v>=0?v:simulatedPriceFor(c)}
+function imgOf(c){return c.images?.large||c.images?.small||''}
+function toast(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2400)}
+function save(){try{localStorage.setItem('pokepack_collection',JSON.stringify(collection));localStorage.setItem('pokepack_history',JSON.stringify(history))}catch(e){}}
+function loadSave(){try{collection=JSON.parse(localStorage.getItem('pokepack_collection')||'[]');history=JSON.parse(localStorage.getItem('pokepack_history')||'[]')}catch(e){collection=[];history=[]}}
+function bestCard(cards){return cards.reduce((best,c)=>priceOf(c)!=null&&(priceOf(best)==null||priceOf(c)>priceOf(best))?c:best,cards[0]||null)}
+function cardHTML(c,idx,opts={}){let p=priceOf(c),img=imgOf(c),set=c.set?.name||c.setName||'';return `<div class="tcg-card"><img loading="lazy" src="${escapeHTML(img)}" alt="${escapeHTML(c.name)}" onerror="this.style.opacity='.25';this.alt='Image unavailable'"><div class="card-name">${escapeHTML(c.name)}</div><div class="card-meta">${escapeHTML(set)}${c.number?' · #'+escapeHTML(c.number):''}</div><div class="price ${p==null?'unknown':''}">${fmt(p)}</div>${opts.album?`<button class="mini-btn" data-remove="${idx}">Usuń duplikat</button>`:''}</div>`}
+async function fetchJSON(url){const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
+async function init(){loadSave();renderStats();renderAlbum();renderHistory();try{const d=await fetchJSON(`${API}/sets?orderBy=-releaseDate`);sets=d.data||[];$('apiStatus').innerHTML='<strong>● API połączone</strong><br>Pokémon TCG catalog';$('setCount').textContent=sets.length+' zestawów';$('loadingSets').classList.add('hidden');populateSetPicker();renderPacks();}catch(e){$('apiStatus').innerHTML='<strong style="color:#ff9c9c">● Brak połączenia</strong><br>Sprawdź internet';$('loadingSets').innerHTML='<div class="empty">Nie udało się pobrać katalogu. Sprawdź połączenie i odśwież stronę.</div>';}}
+function renderPacks(){let list=sets;let slice=list.slice(0,shownSets);$('packGrid').innerHTML=slice.map((s,i)=>`<article class="pack" style="--glow:${['#6f7dff','#f16fae','#50d6c9','#ffc95e'][i%4]}"><div class="pack-art">${s.images?.logo?`<img loading="lazy" src="${escapeHTML(s.images.logo)}" alt="">`:`<span class="orb">⚡</span>`}</div><h3>${escapeHTML(s.name)}</h3><div class="small">${escapeHTML(s.series||'Pokémon TCG')} · ${escapeHTML(s.releaseDate||'')}</div><div class="pack-foot"><span class="pill">${s.total||'?'} cards</span><button class="open-btn" data-open="${escapeHTML(s.id)}" ${opening?'disabled':''}>Otwórz</button></div></article>`).join('');$('loadMore').classList.toggle('hidden',list.length<=shownSets);$('loadMoreWrap').classList.toggle('hidden',list.length<=shownSets)}
+function populateSetPicker(){const picker=$('setPicker');picker.innerHTML='<option value="">Wybierz paczkę z listy…</option>'+sets.map(s=>`<option value="${escapeHTML(s.id)}">${escapeHTML(s.name)} · ${escapeHTML(s.releaseDate||'')}</option>`).join('');$('openPicked').disabled=true}
+async function getSetCards(set){if(cache[set.id])return cache[set.id];let d=await fetchJSON(`${API}/cards?q=set.id:${encodeURIComponent(set.id)}&pageSize=250&orderBy=number`);let cards=(d.data||[]).filter(c=>c.name&&imgOf(c));cache[set.id]=cards;return cards}
+async function openPack(id){
+ if(opening)return;
+ let set=sets.find(s=>s.id===id);if(!set)return;
+ opening=true;renderPacks();
+ $('bestDrop').innerHTML='<div style="width:100%"><div class="loadline"><div></div></div><div class="muted">Otwieram paczkę '+escapeHTML(set.name)+'…</div></div>';
+ $('packResults').classList.add('hidden');
+ try{
+  let pool=await getSetCards(set);if(!pool.length)throw new Error('Ten zestaw nie zwrócił kart.');
+  let cards=[],used=new Set();
+  // Bez duplikatów w jednej paczce, o ile zestaw ma wystarczająco dużo różnych kart.
+  let available=[...pool];
+  // Jeśli zestaw zawiera karty Energy, jedna z nich jest gwarantowana w paczce.
+  let energyIndex=available.findIndex(c=>String(c.supertype||'').toLowerCase()==='energy'||(Array.isArray(c.types)&&c.types.some(t=>String(t).toLowerCase()==='energy')));
+  if(energyIndex>=0){let e=available.splice(energyIndex,1)[0];cards.push(e);used.add(e.id||e.name)}
+  while(cards.length<10&&available.length){let i=Math.floor(Math.random()*available.length);let c=available.splice(i,1)[0];let key=c.id||c.name;if(used.has(key))continue;cards.push(c);used.add(key)}
+  // W małych zestawach dobierz ponownie tylko wtedy, gdy nie ma 10 unikalnych kart.
+  while(cards.length<10){cards.push(pool[Math.floor(Math.random()*pool.length)])}
+  // Losowe ułożenie, by karta Energy nie była zawsze na początku.
+  for(let i=cards.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[cards[i],cards[j]]=[cards[j],cards[i]]}
+  cards=cards.map(c=>{let hasApiPrice=typeof (c.cardmarket?.prices?.trendPrice??c.cardmarket?.prices?.averageSellPrice??c.cardmarket?.prices?.avg30??c.cardmarket?.prices?.lowPrice)==='number';return !hasApiPrice&&typeof c.simulatedPrice!=='number'?{...c,simulatedPrice:simulatedPriceFor(c)}:c});
+  let priced=cards.map(priceOf),total=priced.reduce((a,b)=>a+b,0),best=bestCard(cards),stamp=Date.now();
+  collection.push(...cards.map(c=>({...c,obtainedAt:stamp})));
+  history.unshift({id:stamp,set:set.name,cards:cards.map(c=>({id:c.id,name:c.name,image:imgOf(c),price:priceOf(c),rarity:c.rarity||'',set:c.set?.name||set.name,number:c.number})),total,pricedCount:priced.length,best:best?{name:best.name,image:imgOf(best),price:priceOf(best)}:null,date:new Date().toLocaleString('pl-PL')});
+  save();showBest(best);
+  $('resultCards').innerHTML=cards.map((c,i)=>cardHTML(c,i,{reveal:true,final:i===9})).join('');
+  [...$('resultCards').children].forEach((el,i)=>{el.classList.add('reveal-card');el.style.setProperty('--reveal-delay',(i*420)+'ms');if(i===9){el.classList.add('final-reveal');el.querySelector('.card-name')?.insertAdjacentHTML('beforebegin','<span class="tag" style="margin-bottom:4px">✨ KARTA FINAŁOWA</span>')}});
+  $('resultCount').textContent=cards.length+' kart';
+  $('packSummary').innerHTML=`<div class="summary-row"><span>Zestaw</span><b>${escapeHTML(set.name)}</b></div><div class="summary-row"><span>Karty z ceną (API lub symulowana)</span><b>${priced.length}/10</b></div><div class="divider"></div><div class="summary-row"><span>ŁĄCZNA WARTOŚĆ PACZKI</span></div><div class="total">${fmt(total)}</div><div class="tiny">Karty odkrywają się po kolei. Ostatnia karta jest wyróżniona jako finał. Duplikaty są unikane, gdy zestaw zawiera wystarczająco dużo kart.</div>`;
+  $('packResults').classList.remove('hidden');renderStats();renderAlbum();renderHistory();toast('Paczka otwarta! Odkrywaj karty po kolei.');
+ }catch(e){$('bestDrop').innerHTML=`<div class="empty">Nie udało się otworzyć paczki: ${escapeHTML(e.message)}<br><button class="secondary" onclick="location.reload()" style="margin-top:12px">Odśwież stronę</button></div>`}
+ finally{opening=false;renderPacks()}
+}
+function showBest(c){if(!c){$('bestDrop').innerHTML='<div class="empty">Brak kart do pokazania.</div>';return}let p=priceOf(c);$('bestDrop').innerHTML=`<div class="best-card"><img src="${escapeHTML(imgOf(c))}" alt="${escapeHTML(c.name)}"><div><span class="pill">TOP VALUE</span><h3 style="margin-top:9px">${escapeHTML(c.name)}</h3><div class="tiny">${escapeHTML(c.set?.name||'')}</div><div class="best-price">${fmt(p)}</div><div class="tiny">Numer: ${escapeHTML(c.number||'—')}<br>Rzadkość: ${escapeHTML(c.rarity||'—')}</div><span class="tag">Najdroższa z paczki</span></div></div>`}
+function renderStats(){let vals=collection.map(c=>({c,p:priceOf(c)}));let total=vals.reduce((s,x)=>s+(x.p||0),0);let best=vals.filter(x=>x.p!=null).sort((a,b)=>b.p-a.p)[0];$('totalValue').textContent=fmt(total);$('packsOpened').textContent=history.length;$('cardCount').textContent=collection.length;$('bestValue').textContent=fmt(best?.p??null);$('bestName').textContent=best?.c?.name||'Brak wycenionych kart';}
+function renderAlbum(){let q=($('albumSearch')?.value||'').toLowerCase();let indexed=collection.map((c,i)=>({c,i,p:priceOf(c)})).filter(x=>x.c.name.toLowerCase().includes(q)).sort((a,b)=>(b.p??-1)-(a.p??-1));$('albumEmpty').classList.toggle('hidden',collection.length>0);$('albumGrid').innerHTML=indexed.map(x=>cardHTML(x.c,x.i,{album:true})).join('');$('albumGrid').querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{collection.splice(Number(b.dataset.remove),1);save();renderAlbum();renderStats()})}
+function renderHistory(){let el=$('historyList');if(!history.length){el.innerHTML='<div class="empty">Nie masz jeszcze żadnych otwarć.</div>';return}el.innerHTML=history.map(h=>`<div class="summary" style="margin:0 0 10px"><div class="summary-row"><b>${escapeHTML(h.set)}</b><span class="tiny">${escapeHTML(h.date)}</span></div><div class="summary-row"><span>${h.cards.length} kart · ceny dostępne: ${h.pricedCount}/10</span><b class="price">${fmt(h.total)}</b></div><div class="tiny">Najlepszy drop: ${escapeHTML(h.best?.name||'Brak')} · ${fmt(h.best?.price??null)}</div><details style="margin-top:9px"><summary class="tiny" style="cursor:pointer">Pokaż karty z paczki</summary><div class="card-grid" style="margin-top:10px">${h.cards.map(c=>`<div class="tcg-card"><img loading="lazy" src="${escapeHTML(c.image)}" alt="${escapeHTML(c.name)}"><div class="card-name">${escapeHTML(c.name)}</div><div class="price">${fmt(c.price??simulatedPriceFor(c))}</div></div>`).join('')}</div></details></div>`).join('')}
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x===b));['packs','album','history'].forEach(t=>$(t+'View').classList.toggle('hidden',t!==b.dataset.tab));if(b.dataset.tab==='album')renderAlbum()}));
+$('setPicker').addEventListener('change',()=>{$('openPicked').disabled=!$('setPicker').value});$('openPicked').onclick=()=>{if($('setPicker').value)openPack($('setPicker').value)};$('loadMore').onclick=()=>{shownSets+=24;renderPacks()};$('packGrid').addEventListener('click',e=>{let b=e.target.closest('[data-open]');if(b)openPack(b.dataset.open)});$('albumSearch').addEventListener('input',renderAlbum);
+$('clearCollection').onclick=()=>{if(confirm('Na pewno wyczyścić cały album?')){collection=[];save();renderStats();renderAlbum();toast('Album wyczyszczony')}};$('clearHistory').onclick=()=>{if(confirm('Na pewno wyczyścić historię?')){history=[];save();renderStats();renderHistory();toast('Historia wyczyszczona')}};
+init();
+</script>
+</body>
+</html>
